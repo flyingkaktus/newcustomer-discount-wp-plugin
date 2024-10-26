@@ -3,7 +3,7 @@
  * Plugin Name: Neukunden Rabatt System
  * Plugin URI: https://comingsoon.de
  * Description: Automatisches Rabattsystem für Neukunden mit E-Mail-Versand
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Maciej Suchowski
  * Author URI: https://comingsoon.de
  * License: GPLv2 or later
