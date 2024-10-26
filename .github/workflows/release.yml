@@ -11,6 +11,8 @@ on:
       - main
     paths-ignore:
       - 'v*'
+      - '*.zip'
+      - '*.md'
 
 jobs:
   version-and-release:
@@ -58,6 +60,7 @@ jobs:
           fi
           
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "DATE=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
           echo "Neue Version: $NEW_VERSION"
 
       - name: Update version in files
@@ -67,7 +70,7 @@ jobs:
           
           # Update Plugin-Datei
           sed -i "s/Version: .*$/Version: $VERSION/" newcustomer-discount.php
-          sed -i "s/define('NCD_VERSION',.*/define('NCD_VERSION', '$VERSION');/" newcustomer-discount.php
+          sed -i "s/define('NCD_VERSION'.*/define('NCD_VERSION', '$VERSION');/" newcustomer-discount.php
           
           # Update readme.txt falls vorhanden
           if [ -f "readme.txt" ]; then
@@ -95,18 +98,43 @@ jobs:
 
       - name: Create ZIP archive
         run: |
+          # Erstelle temporäres Verzeichnis für ZIP
           mkdir -p temp/newcustomer-discount
-          rsync -av --exclude='.git*' --exclude='.github' --exclude='temp' --exclude='tests' --exclude='node_modules' . temp/newcustomer-discount/
+          
+          # Kopiere Dateien, aber excludiere unnötige Dateien
+          rsync -av \
+            --exclude='.git*' \
+            --exclude='.github' \
+            --exclude='temp' \
+            --exclude='tests' \
+            --exclude='node_modules' \
+            --exclude='*.zip' \
+            --exclude='README.md' \
+            --exclude='.DS_Store' \
+            --exclude='*.log' \
+            --exclude='*.sql' \
+            --exclude='*.tar.gz' \
+            --exclude='*.bak' \
+            --exclude='*.swp' \
+            . temp/newcustomer-discount/
+          
+          # Erstelle ZIP im temp Verzeichnis
           cd temp
-          zip -r ../newcustomer-discount-wp-plugin.zip newcustomer-discount
+          zip -r ../release.zip newcustomer-discount
           cd ..
+          
+          # Cleanup temp Verzeichnis
           rm -rf temp
 
       - name: Commit version update
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add -A
+          
+          # Nur die Versionsdateien committen
+          git add newcustomer-discount.php
+          git add readme.txt || true  # Falls die Datei existiert
+          
           git commit -m "chore: update version to ${{ steps.new_version.outputs.NEW_VERSION }}"
           git tag "v${{ steps.new_version.outputs.NEW_VERSION }}"
           git push
@@ -117,7 +145,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: newcustomer-discount-wp-plugin.zip
+          files: release.zip
           tag_name: v${{ steps.new_version.outputs.NEW_VERSION }}
           name: Release ${{ steps.new_version.outputs.NEW_VERSION }}
           body: |
@@ -128,7 +156,7 @@ jobs:
             
             Diese Version enthält:
             * Plugin Version: ${{ steps.new_version.outputs.NEW_VERSION }}
-            * Generiert am: ${{ steps.version.outputs.DATE }}
+            * Generiert am: ${{ steps.new_version.outputs.DATE }}
             
             ### Installation
             1. Laden Sie die ZIP-Datei herunter
@@ -137,8 +165,10 @@ jobs:
             4. Wählen Sie die heruntergeladene ZIP-Datei aus
             5. Klicken Sie auf "Jetzt installieren"
             6. Aktivieren Sie das Plugin
+          draft: false
+          prerelease: false
 
       - name: Cleanup
         if: always()
         run: |
-          rm -f newcustomer-discount-wp-plugin.zip
+          rm -f release.zip
