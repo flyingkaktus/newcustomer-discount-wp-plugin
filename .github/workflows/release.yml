@@ -1,0 +1,162 @@
+# .github/workflows/release.yml
+
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+    paths-ignore:
+      - 'v*'
+
+jobs:
+  build:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Alle History für Changelog
+
+      # Setup PHP für Validierung
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          extensions: mbstring, xml
+          tools: composer:v2
+
+      # PHP Dateien validieren
+      - name: PHP Lint
+        run: |
+          find . -name "*.php" -exec php -l {} \;
+
+      # Version aus Tag oder Commit extrahieren
+      - name: Get version
+        id: get_version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+          else
+            COMMIT_MSG=$(git log --format=%B -n 1 ${{ github.event.after }})
+            if [[ $COMMIT_MSG =~ release:\ v([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+              echo ::set-output name=VERSION::v${BASH_REMATCH[1]}
+            else
+              echo "No version found in commit message"
+              exit 1
+            fi
+          fi
+
+      # Version in Plugin-Datei aktualisieren
+      - name: Update version in plugin file
+        run: |
+          VERSION=${GITHUB_REF/refs\/tags\/v/}
+          sed -i "s/Version: .*/Version: $VERSION/" newcustomer-discount.php
+          sed -i "s/define('NCD_VERSION'.*/define('NCD_VERSION', '$VERSION');/" newcustomer-discount.php
+
+      # Version in readme.txt aktualisieren (falls vorhanden)
+      - name: Update readme.txt
+        run: |
+          VERSION=${GITHUB_REF/refs\/tags\/v/}
+          if [ -f "readme.txt" ]; then
+            sed -i "s/Stable tag: .*/Stable tag: $VERSION/" readme.txt
+          fi
+
+      # Changelog generieren
+      - name: Generate changelog
+        id: changelog
+        run: |
+          CHANGELOG=""
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -n "$PREVIOUS_TAG" ]; then
+            CHANGELOG=$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"* %s (%h)" --no-merges)
+          else
+            CHANGELOG=$(git log --pretty=format:"* %s (%h)" --no-merges)
+          fi
+          
+          # Escape newlines for GitHub Actions
+          CHANGELOG="${CHANGELOG//'%'/'%25'}"
+          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
+          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
+          
+          echo "::set-output name=changelog::$CHANGELOG"
+
+      # ZIP-Datei erstellen
+      - name: Create ZIP archive
+        run: |
+          # Temporäres Verzeichnis erstellen
+          mkdir -p temp/newcustomer-discount
+          
+          # Dateien kopieren (ohne .git, .github etc)
+          rsync -av --exclude='.git*' --exclude='.github' --exclude='temp' --exclude='tests' --exclude='node_modules' . temp/newcustomer-discount/
+          
+          # ZIP erstellen
+          cd temp
+          zip -r ../newcustomer-discount-wp-plugin.zip newcustomer-discount
+          cd ..
+          
+          # Temp-Verzeichnis aufräumen
+          rm -rf temp
+
+      # Release erstellen
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_version.outputs.VERSION }}
+          release_name: Release ${{ steps.get_version.outputs.VERSION }}
+          body: |
+            Änderungen in diesem Release:
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ### Automatisch generierter Release
+            
+            Diese Version enthält:
+            * Plugin Version: ${{ steps.get_version.outputs.VERSION }}
+            * Generiert am: ${{ steps.get_version.outputs.DATE }}
+            
+            ### Installation
+            1. Laden Sie die ZIP-Datei herunter
+            2. Gehen Sie in Ihrem WordPress-Dashboard zu Plugins > Installieren
+            3. Klicken Sie auf "Plugin hochladen"
+            4. Wählen Sie die heruntergeladene ZIP-Datei aus
+            5. Klicken Sie auf "Jetzt installieren"
+            6. Aktivieren Sie das Plugin
+          draft: false
+          prerelease: false
+
+      # ZIP-Datei zum Release hochladen
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./newcustomer-discount-wp-plugin.zip
+          asset_name: newcustomer-discount-wp-plugin.zip
+          asset_content_type: application/zip
+
+      # Commits pushen (falls Versionsänderungen vorgenommen wurden)
+      - name: Push changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add -A
+            git commit -m "chore: update version to ${{ steps.get_version.outputs.VERSION }}"
+            git push
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Cleanup
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f newcustomer-discount-wp-plugin.zip
