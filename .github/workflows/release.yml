@@ -1,5 +1,11 @@
 name: Create Release
 
+# Definiere Berechtigungen für alle Jobs
+permissions:
+  contents: write  # Für Releases und Pushes
+  packages: write  # Falls Sie auch Packages verwenden
+  issues: write    # Falls Sie Release-Notes in Issues referenzieren
+
 on:
   push:
     tags:
@@ -13,11 +19,13 @@ jobs:
   build:
     name: Create Release
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -35,23 +43,15 @@ jobs:
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/v}
-            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           else
-            COMMIT_MSG=$(git log --format=%B -n 1 ${{ github.event.after }})
-            if [[ $COMMIT_MSG =~ release:\ v([0-9]+\.[0-9]+\.[0-9]+) ]]; then
-              echo "VERSION=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
-            else
-              echo "No version found in commit message"
-              exit 1
-            fi
+            VERSION="1.0.10"  # Default Version wenn kein Tag
           fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "DATE=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
       - name: Update version in plugin file
         run: |
           VERSION=${{ steps.version.outputs.VERSION }}
-          # Escape dots in version number for sed
-          VERSION_ESCAPED=$(echo $VERSION | sed 's/\./\\./g')
           sed -i "s/Version: .*$/Version: $VERSION/" newcustomer-discount.php
           sed -i "s/define('NCD_VERSION',.*/define('NCD_VERSION', '$VERSION');/" newcustomer-discount.php
 
@@ -88,6 +88,8 @@ jobs:
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: newcustomer-discount-wp-plugin.zip
           tag_name: v${{ steps.version.outputs.VERSION }}
@@ -111,8 +113,6 @@ jobs:
             6. Aktivieren Sie das Plugin
           draft: false
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push changes
         run: |
