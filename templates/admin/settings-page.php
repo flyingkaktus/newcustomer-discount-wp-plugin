@@ -29,7 +29,13 @@ $allowed_types = implode(', ', array_map(function($type) {
                 <?php _e('E-Mail', 'newcustomer-discount'); ?>
             </a>
             <a href="#coupon-settings" class="nav-tab">
-                <?php _e('Gutscheine', 'newcustomer-discount'); ?>
+                <?php _e('Gutschein-Einstellungen', 'newcustomer-discount'); ?>
+            </a>
+            <a href="#code-settings" class="nav-tab">
+                <?php _e('Code-Konfiguration', 'newcustomer-discount'); ?>
+            </a>
+            <a href="#customer-settings" class="nav-tab">
+                <?php _e('Neukunden-Definition', 'newcustomer-discount'); ?>
             </a>
         </nav>
 
@@ -228,6 +234,241 @@ $allowed_types = implode(', ', array_map(function($type) {
                     <p class="submit">
                         <button type="submit" 
                                 name="save_coupon_settings" 
+                                class="button button-primary">
+                            <?php _e('Einstellungen speichern', 'newcustomer-discount'); ?>
+                        </button>
+                    </p>
+                </form>
+            </div>
+        </div>
+
+        <!-- Code Configuration -->
+        <div id="code-settings" class="ncd-tab-content">
+            <div class="ncd-card">
+                <h2><?php _e('Gutscheincode-Konfiguration', 'newcustomer-discount'); ?></h2>
+                
+                <form method="post" class="ncd-code-settings-form">
+                    <?php wp_nonce_field('ncd_settings', 'ncd_settings_nonce'); ?>
+
+                    <table class="form-table ncd-form-table">
+                        <tr>
+                            <th scope="row">
+                                <label for="code_prefix">
+                                    <?php _e('Code-Präfix', 'newcustomer-discount'); ?>
+                                </label>
+                            </th>
+                            <td>
+                                <input type="text" 
+                                       name="code_prefix" 
+                                       id="code_prefix" 
+                                       value="<?php echo esc_attr(get_option('ncd_code_prefix', 'NL')); ?>" 
+                                       class="regular-text"
+                                       maxlength="5">
+                                <p class="description">
+                                    <?php _e('Präfix für automatisch generierte Gutscheincodes (max. 5 Zeichen).', 'newcustomer-discount'); ?>
+                                </p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">
+                                <label for="code_length">
+                                    <?php _e('Code-Länge', 'newcustomer-discount'); ?>
+                                </label>
+                            </th>
+                            <td>
+                                <input type="number" 
+                                       name="code_length" 
+                                       id="code_length" 
+                                       value="<?php echo esc_attr(get_option('ncd_code_length', '6')); ?>" 
+                                       min="4" 
+                                       max="12" 
+                                       class="small-text">
+                                <p class="description">
+                                    <?php _e('Länge des Codes ohne Präfix (4-12 Zeichen).', 'newcustomer-discount'); ?>
+                                </p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">
+                                <label for="code_characters">
+                                    <?php _e('Erlaubte Zeichen', 'newcustomer-discount'); ?>
+                                </label>
+                            </th>
+                            <td>
+                                <label>
+                                    <input type="checkbox" 
+                                           name="code_chars[]" 
+                                           value="numbers" 
+                                           <?php checked(in_array('numbers', (array)get_option('ncd_code_chars', ['numbers', 'uppercase']))); ?>>
+                                    <?php _e('Zahlen (0-9)', 'newcustomer-discount'); ?>
+                                </label><br>
+                                <label>
+                                    <input type="checkbox" 
+                                           name="code_chars[]" 
+                                           value="uppercase" 
+                                           <?php checked(in_array('uppercase', (array)get_option('ncd_code_chars', ['numbers', 'uppercase']))); ?>>
+                                    <?php _e('Großbuchstaben (A-Z)', 'newcustomer-discount'); ?>
+                                </label><br>
+                                <label>
+                                    <input type="checkbox" 
+                                           name="code_chars[]" 
+                                           value="lowercase" 
+                                           <?php checked(in_array('lowercase', (array)get_option('ncd_code_chars', ['numbers', 'uppercase']))); ?>>
+                                    <?php _e('Kleinbuchstaben (a-z)', 'newcustomer-discount'); ?>
+                                </label>
+                                <p class="description">
+                                    <?php _e('Wählen Sie die Zeichentypen für die Gutscheincodes.', 'newcustomer-discount'); ?>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <p class="submit">
+                        <button type="submit" 
+                                name="save_code_settings" 
+                                class="button button-primary">
+                            <?php _e('Einstellungen speichern', 'newcustomer-discount'); ?>
+                        </button>
+                    </p>
+                </form>
+            </div>
+        </div>
+
+        <!-- Customer Definition -->
+        <div id="customer-settings" class="ncd-tab-content">
+            <div class="ncd-card">
+                <h2><?php _e('Neukunden-Definition', 'newcustomer-discount'); ?></h2>
+                
+                <form method="post" class="ncd-customer-settings-form">
+                <?php wp_nonce_field('ncd_settings', 'ncd_settings_nonce'); ?>
+                <?php wp_nonce_field('ncd_settings', 'ncd_settings_nonce'); ?>
+
+                    <table class="form-table ncd-form-table">
+                        <tr>
+                            <th scope="row">
+                                <label for="cutoff_date">
+                                    <?php _e('Stichtag', 'newcustomer-discount'); ?>
+                                </label>
+                            </th>
+                            <td>
+                                <input type="date" 
+                                       name="cutoff_date" 
+                                       id="cutoff_date" 
+                                       value="<?php echo esc_attr(get_option('ncd_cutoff_date', '2024-01-01')); ?>" 
+                                       class="regular-text">
+                                <p class="description">
+                                    <?php _e('Kunden ohne Bestellung vor diesem Datum werden als Neukunden behandelt.', 'newcustomer-discount'); ?>
+                                </p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">
+                                <label for="order_count">
+                                    <?php _e('Maximale Bestellungen', 'newcustomer-discount'); ?>
+                                </label>
+                            </th>
+                            <td>
+                                <input type="number" 
+                                       name="order_count" 
+                                       id="order_count" 
+                                       value="<?php echo esc_attr(get_option('ncd_order_count', '0')); ?>" 
+                                       min="0" 
+                                       max="10" 
+                                       class="small-text">
+                                <p class="description">
+                                    <?php _e('Maximale Anzahl vorheriger Bestellungen für Neukunden (0 = keine vorherigen Bestellungen erlaubt).', 'newcustomer-discount'); ?>
+                                </p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">
+                                <label for="check_period">
+                                    <?php _e('Prüfungszeitraum', 'newcustomer-discount'); ?>
+                                </label>
+                            </th>
+                            <td>
+                                <select name="check_period" id="check_period" class="regular-text">
+                                    <option value="all" <?php selected(get_option('ncd_check_period', 'all'), 'all'); ?>>
+                                        <?php _e('Gesamter Zeitraum', 'newcustomer-discount'); ?>
+                                    </option>
+                                    <option value="365" <?php selected(get_option('ncd_check_period', 'all'), '365'); ?>>
+                                        <?php _e('Letztes Jahr', 'newcustomer-discount'); ?>
+                                    </option>
+                                    <option value="180" <?php selected(get_option('ncd_check_period', 'all'), '180'); ?>>
+                                        <?php _e('Letzte 6 Monate', 'newcustomer-discount'); ?>
+                                    </option>
+                                    <option value="90" <?php selected(get_option('ncd_check_period', 'all'), '90'); ?>>
+                                        <?php _e('Letzte 3 Monate', 'newcustomer-discount'); ?>
+                                    </option>
+                                </select>
+                                <p class="description">
+                                    <?php _e('Zeitraum, in dem vorherige Bestellungen geprüft werden.', 'newcustomer-discount'); ?>
+                                </p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">
+                                <label for="min_order_amount">
+                                    <?php _e('Mindestbestellwert', 'newcustomer-discount'); ?>
+                                </label>
+                            </th>
+                            <td>
+                                <input type="number" 
+                                       name="min_order_amount" 
+                                       id="min_order_amount" 
+                                       value="<?php echo esc_attr(get_option('ncd_min_order_amount', '0')); ?>" 
+                                       min="0" 
+                                       step="0.01" 
+                                       class="regular-text">
+                                <p class="description">
+                                    <?php _e('Mindestbestellwert für die Neukundenrabatt-Berechtigung (0 = kein Minimum).', 'newcustomer-discount'); ?>
+                                </p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">
+                                <label for="exclude_categories">
+                                    <?php _e('Ausgeschlossene Kategorien', 'newcustomer-discount'); ?>
+                                </label>
+                            </th>
+                            <td>
+                                <?php
+                                $product_categories = get_terms([
+                                    'taxonomy' => 'product_cat',
+                                    'hide_empty' => false,
+                                ]);
+                                $excluded_categories = (array)get_option('ncd_excluded_categories', []);
+                                
+                                if (!empty($product_categories)) :
+                                    foreach ($product_categories as $category) :
+                                ?>
+                                    <label>
+                                        <input type="checkbox" 
+                                               name="exclude_categories[]" 
+                                               value="<?php echo esc_attr($category->term_id); ?>"
+                                               <?php checked(in_array($category->term_id, $excluded_categories)); ?>>
+                                        <?php echo esc_html($category->name); ?>
+                                    </label><br>
+                                <?php 
+                                    endforeach;
+                                endif;
+                                ?>
+                                <p class="description">
+                                    <?php _e('Bestellungen dieser Kategorien werden bei der Neukundenprüfung nicht berücksichtigt.', 'newcustomer-discount'); ?>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <p class="submit">
+                        <button type="submit" 
+                                name="save_customer_settings" 
                                 class="button button-primary">
                             <?php _e('Einstellungen speichern', 'newcustomer-discount'); ?>
                         </button>

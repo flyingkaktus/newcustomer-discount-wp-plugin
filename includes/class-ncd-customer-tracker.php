@@ -102,21 +102,25 @@ class NCD_Customer_Tracker
      * @param string $cutoff_date Optional. Stichtag für die Prüfung
      * @return bool
      */
-    public function is_new_customer($email, $cutoff_date = NEWCUSTOMER_CUTOFF_DATE)
+    // In class-ncd-customer-tracker.php
+    public function is_new_customer($email)
     {
         global $wpdb;
 
-        $count = $wpdb->get_var($wpdb->prepare("
-            SELECT COUNT(*)
-            FROM {$wpdb->prefix}posts as p
-            JOIN {$wpdb->prefix}postmeta as pm ON p.ID = pm.post_id
-            WHERE p.post_type = 'shop_order'
-            AND p.post_date < %s
-            AND pm.meta_key = '_billing_email'
-            AND pm.meta_value = %s
-        ", $cutoff_date, $email));
+        $cutoff_date = get_option('ncd_cutoff_date', '2024-01-01');
+        $max_orders = get_option('ncd_order_count', 0);
 
-        return $count == 0;
+        $count = $wpdb->get_var($wpdb->prepare("
+        SELECT COUNT(*)
+        FROM {$wpdb->prefix}posts as p
+        JOIN {$wpdb->prefix}postmeta as pm ON p.ID = pm.post_id
+        WHERE p.post_type = 'shop_order'
+        AND p.post_date < %s
+        AND pm.meta_key = '_billing_email'
+        AND pm.meta_value = %s
+    ", $cutoff_date, $email));
+
+        return $count <= $max_orders;
     }
 
     /**
