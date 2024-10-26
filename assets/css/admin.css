@@ -1,0 +1,180 @@
+/* General Admin Styles */
+.ncd-wrap {
+    margin: 20px 0;
+}
+
+/* Card Styles */
+.ncd-card {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.ncd-card h2 {
+    margin-top: 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Test Email Form */
+.ncd-test-email-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.ncd-test-email-form input[type="email"] {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Filter Form */
+.ncd-filter-form {
+    margin: 15px 0;
+    padding: 15px;
+    background: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+}
+
+.ncd-filter-form select {
+    margin-right: 15px;
+    min-width: 200px;
+}
+
+.ncd-filter-form label {
+    margin-right: 15px;
+}
+
+/* Customer Table */
+.ncd-customers-table {
+    margin-top: 20px;
+    width: 100%;
+}
+
+.ncd-customers-table th {
+    font-weight: 600;
+}
+
+.ncd-customers-table td, 
+.ncd-customers-table th {
+    padding: 12px;
+    vertical-align: middle;
+}
+
+/* Status Indicators */
+.ncd-status-new {
+    color: #46b450;
+    font-weight: bold;
+}
+
+.ncd-status-existing {
+    color: #dc3232;
+}
+
+/* Logo Settings */
+.ncd-logo-preview {
+    max-width: 200px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    padding: 5px;
+    background: #fff;
+}
+
+.ncd-logo-actions {
+    margin-top: 10px;
+}
+
+/* Form Elements */
+.ncd-form-table {
+    margin-top: 20px;
+}
+
+.ncd-form-table th {
+    padding: 20px 10px 20px 0;
+    width: 200px;
+}
+
+.ncd-form-table td {
+    padding: 15px 10px;
+}
+
+.ncd-textarea {
+    width: 100%;
+    min-height: 100px;
+    font-family: monospace;
+}
+
+/* Notices */
+.ncd-notice {
+    padding: 12px;
+    margin: 15px 0;
+    background: #fff;
+    border-left: 4px solid #46b450;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.ncd-notice.ncd-notice-error {
+    border-left-color: #dc3232;
+}
+
+.ncd-notice.ncd-notice-info {
+    border-left-color: #00a0d2;
+}
+
+/* Buttons */
+.ncd-button-group {
+    margin: 15px 0;
+}
+
+.ncd-button-group .button {
+    margin-right: 10px;
+}
+
+/* Loading States */
+.ncd-loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 782px) {
+    .ncd-test-email-form {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .ncd-form-table th {
+        width: 100%;
+        display: block;
+        padding-bottom: 0;
+    }
+    
+    .ncd-form-table td {
+        width: 100%;
+        display: block;
+        padding-top: 5px;
+    }
+    
+    .ncd-filter-form select,
+    .ncd-filter-form label {
+        display: block;
+        margin: 10px 0;
+    }
+}
+
+/* Animations */
+@keyframes ncd-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.ncd-fade {
+    animation: ncd-fade 0.3s ease-in-out;
+}

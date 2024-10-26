@@ -1,0 +1,297 @@
+# Copyright (C) 2024 Maciej Suchowski
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Neukunden Rabatt System 1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/newcustomer-discount\n"
+"POT-Creation-Date: 2024-03-21 12:00:00+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2024-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+
+#: includes/class-ncd-admin.php:51
+msgid "Neukunden"
+msgstr ""
+
+#: includes/class-ncd-admin.php:59
+msgid "Einstellungen"
+msgstr ""
+
+#: includes/class-ncd-admin.php:67
+msgid "Statistiken"
+msgstr ""
+
+#: includes/class-ncd-admin.php:144
+msgid "Möchten Sie wirklich einen Rabattcode an diesen Kunden senden?"
+msgstr ""
+
+#: includes/class-ncd-admin.php:145
+msgid "Möchten Sie eine Test-E-Mail an diese Adresse senden?"
+msgstr ""
+
+#: includes/class-ncd-admin.php:146
+msgid "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+msgstr ""
+
+#: includes/class-ncd-admin.php:208
+msgid "Keine Berechtigung."
+msgstr ""
+
+#: includes/class-ncd-admin.php:213
+msgid "Ungültige E-Mail-Adresse."
+msgstr ""
+
+#: includes/class-ncd-admin.php:222
+msgid "Test-E-Mail wurde an %s gesendet."
+msgstr ""
+
+#: includes/class-ncd-coupon-generator.php:165
+msgid "Gutschein existiert nicht."
+msgstr ""
+
+#: includes/class-ncd-coupon-generator.php:178
+msgid "Gutschein ist abgelaufen."
+msgstr ""
+
+#: includes/class-ncd-coupon-generator.php:181
+msgid "Gutschein wurde bereits eingelöst."
+msgstr ""
+
+#: includes/class-ncd-email-sender.php:72
+msgid "Ungültige E-Mail-Adresse"
+msgstr ""
+
+#: includes/class-ncd-email-sender.php:85
+msgid "E-Mail konnte nicht gesendet werden"
+msgstr ""
+
+#: includes/class-ncd-email-sender.php:116
+msgid "E-Mail-Template %s nicht gefunden"
+msgstr ""
+
+#: includes/class-ncd-email-sender.php:139
+msgid "E-Mail-Template ist leer"
+msgstr ""
+
+#: includes/class-ncd-email-sender.php:196
+msgid "Template-Inhalt ist leer"
+msgstr ""
+
+#: includes/class-ncd-email-sender.php:209
+msgid "Pflicht-Platzhalter %s fehlt"
+msgstr ""
+
+#: templates/admin/customers-page.php:20
+msgid "Neukunden Übersicht"
+msgstr ""
+
+#: templates/admin/customers-page.php:25
+msgid "Gesamt"
+msgstr ""
+
+#: templates/admin/customers-page.php:29
+msgid "Ausstehend"
+msgstr ""
+
+#: templates/admin/customers-page.php:33
+msgid "Rabatt gesendet"
+msgstr ""
+
+#: templates/admin/customers-page.php:40
+msgid "Test E-Mail senden"
+msgstr ""
+
+#: templates/admin/customers-page.php:41
+msgid "Hier können Sie eine Test-E-Mail mit Gutscheincode an eine beliebige Adresse senden."
+msgstr ""
+
+#: templates/admin/customers-page.php:65
+msgid "Letzte 7 Tage"
+msgstr ""
+
+#: templates/admin/customers-page.php:68
+msgid "Letzte 30 Tage"
+msgstr ""
+
+#: templates/admin/customers-page.php:71
+msgid "Letzte 90 Tage"
+msgstr ""
+
+#: templates/admin/customers-page.php:74
+msgid "Letztes Jahr"
+msgstr ""
+
+#: templates/admin/customers-page.php:81
+msgid "Nur Neukunden"
+msgstr ""
+
+#: templates/admin/customers-page.php:87
+msgid "Filter anwenden"
+msgstr ""
+
+#: templates/admin/customers-page.php:95
+msgid "Als Neukunden werden alle Kunden gezählt, die vor dem %s noch keine Bestellung aufgegeben haben."
+msgstr ""
+
+#: templates/admin/customers-page.php:106
+msgid "E-Mail"
+msgstr ""
+
+#: templates/admin/customers-page.php:109
+msgid "Name"
+msgstr ""
+
+#: templates/admin/customers-page.php:112
+msgid "Bestelldatum"
+msgstr ""
+
+#: templates/admin/customers-page.php:115
+msgid "Status"
+msgstr ""
+
+#: templates/admin/customers-page.php:118
+msgid "Rabattcode"
+msgstr ""
+
+#: templates/admin/customers-page.php:121
+msgid "Gesendet am"
+msgstr ""
+
+#: templates/admin/customers-page.php:124
+msgid "Aktionen"
+msgstr ""
+
+#: templates/admin/customers-page.php:132
+msgid "Keine Kunden gefunden."
+msgstr ""
+
+#: templates/admin/customers-page.php:145
+msgid "Neukunde"
+msgstr ""
+
+#: templates/admin/customers-page.php:149
+msgid "Bestandskunde"
+msgstr ""
+
+#: templates/admin/customers-page.php:175
+msgid "Rabattcode senden"
+msgstr ""
+
+#: templates/admin/customers-page.php:179
+msgid "Rabattcode wurde bereits gesendet"
+msgstr ""
+
+#: templates/admin/settings-page.php:19
+msgid "Neukunden Rabatt Einstellungen"
+msgstr ""
+
+#: templates/admin/settings-page.php:23
+msgid "Logo"
+msgstr ""
+
+#: templates/admin/settings-page.php:26
+msgid "E-Mail"
+msgstr ""
+
+#: templates/admin/settings-page.php:29
+msgid "Gutscheine"
+msgstr ""
+
+#: templates/admin/settings-page.php:36
+msgid "Logo-Einstellungen"
+msgstr ""
+
+#: templates/admin/settings-page.php:45
+msgid "Logo hochladen"
+msgstr ""
+
+#: templates/admin/settings-page.php:54
+msgid "Erlaubte Dateitypen: %s. Maximale Größe: %s"
+msgstr ""
+
+#: templates/admin/settings-page.php:62
+msgid "ODER Base64-String"
+msgstr ""
+
+#: templates/admin/settings-page.php:72
+msgid "Fügen Sie hier Ihren Base64-codierten Bildstring ein (beginnt mit 'data:image/...')"
+msgstr ""
+
+#: templates/admin/settings-page.php:78
+msgid "Aktuelles Logo"
+msgstr ""
+
+#: templates/admin/settings-page.php:84
+msgid "Logo löschen"
+msgstr ""
+
+#: templates/admin/settings-page.php:94
+msgid "Logo speichern"
+msgstr ""
+
+#: templates/email/discount-email.php:39
+msgid "Neukundenrabatt"
+msgstr ""
+
+#: templates/email/discount-email.php:179
+msgid "Dein persönlicher Neukundenrabatt"
+msgstr ""
+
+#: templates/email/discount-email.php:186
+msgid "Hallo %s,"
+msgstr ""
+
+#: templates/email/discount-email.php:191
+msgid "vielen Dank für deine Bestellung! Als Dankeschön senden wir dir deinen persönlichen Neukundenrabatt in Höhe von 20%."
+msgstr ""
+
+#: templates/email/discount-email.php:198
+msgid "Zusätzlich zum besten Kratom haben wir im Sale aktuell 15%ige CBD Blüten der Sorte Tropic Kush mit einem einzigartigen Aroma. Das solltest du dir nicht entgehen lassen. Nur solange der Vorrat reicht."
+msgstr ""
+
+#: templates/email/discount-email.php:202
+msgid "Mit visionären Grüßen"
+msgstr ""
+
+#: templates/email/discount-email.php:204
+msgid "dein %s Team"
+msgstr ""
+
+#: templates/email/discount-email.php:209
+msgid "Jetzt einkaufen"
+msgstr ""
+
+#: templates/email/discount-email.php:216
+msgid "Diese E-Mail wurde automatisch generiert. Bitte antworte nicht darauf."
+msgstr ""
+
+#: templates/email/discount-email.php:220
+msgid "© %1$s %2$s. Alle Rechte vorbehalten."
+msgstr ""
+
+#: templates/email/discount-email.php:225
+msgid "Um dich von unserem Newsletter abzumelden, antworte bitte auf diese E-Mail mit \"Abmelden\" im Betreff."
+msgstr ""
+
+#. Plugin Name of the plugin
+msgid "Neukunden Rabatt System"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://comingsoon.de"
+msgstr ""
+
+#. Description of the plugin
+msgid "Automatisches Rabattsystem für Neukunden mit E-Mail-Versand"
+msgstr ""
+
+#. Author of the plugin
+msgid "Maciej Suchowski"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://comingsoon.de"
+msgstr ""
