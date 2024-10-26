@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin-Konstanten definieren
-define('NCD_VERSION', '1.0.0');
+define('NCD_VERSION', '1.0.1');
 define('NCD_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('NCD_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('NCD_INCLUDES_DIR', NCD_PLUGIN_DIR . 'includes/');
