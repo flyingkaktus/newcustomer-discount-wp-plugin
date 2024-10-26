@@ -12,7 +12,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class NCD_Customer_Tracker {
+class NCD_Customer_Tracker
+{
     /**
      * Name der Datenbank-Tabelle
      *
@@ -25,7 +26,8 @@ class NCD_Customer_Tracker {
      *
      * @return string
      */
-    private static function get_table_name() {
+    private static function get_table_name()
+    {
         if (self::$table_name === null) {
             global $wpdb;
             self::$table_name = $wpdb->prefix . 'customer_discount_tracking';
@@ -36,7 +38,8 @@ class NCD_Customer_Tracker {
     /**
      * Constructor
      */
-    public function __construct() {
+    public function __construct()
+    {
         add_action('wp_scheduled_delete', [$this, 'cleanup_old_entries']);
     }
 
@@ -45,7 +48,8 @@ class NCD_Customer_Tracker {
      *
      * @return void
      */
-    public static function activate() {
+    public static function activate()
+    {
         self::create_database_table();
         wp_schedule_event(time(), 'daily', 'cleanup_tracking_entries');
     }
@@ -55,7 +59,8 @@ class NCD_Customer_Tracker {
      *
      * @return void
      */
-    public static function deactivate() {
+    public static function deactivate()
+    {
         wp_clear_scheduled_hook('cleanup_tracking_entries');
     }
 
@@ -64,11 +69,12 @@ class NCD_Customer_Tracker {
      *
      * @return void
      */
-    private static function create_database_table() {
+    private static function create_database_table()
+    {
         global $wpdb;
-        
+
         $charset_collate = $wpdb->get_charset_collate();
-        
+
         $sql = "CREATE TABLE IF NOT EXISTS " . self::get_table_name() . " (
             id bigint(20) NOT NULL AUTO_INCREMENT,
             customer_email varchar(255) NOT NULL,
@@ -84,7 +90,7 @@ class NCD_Customer_Tracker {
             KEY status (status),
             KEY created_at (created_at)
         ) $charset_collate;";
-        
+
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
     }
@@ -96,9 +102,10 @@ class NCD_Customer_Tracker {
      * @param string $cutoff_date Optional. Stichtag für die Prüfung
      * @return bool
      */
-    public function is_new_customer($email, $cutoff_date = NEWCUSTOMER_CUTOFF_DATE) {
+    public function is_new_customer($email, $cutoff_date = NEWCUSTOMER_CUTOFF_DATE)
+    {
         global $wpdb;
-        
+
         $count = $wpdb->get_var($wpdb->prepare("
             SELECT COUNT(*)
             FROM {$wpdb->prefix}posts as p
@@ -108,7 +115,7 @@ class NCD_Customer_Tracker {
             AND pm.meta_key = '_billing_email'
             AND pm.meta_value = %s
         ", $cutoff_date, $email));
-        
+
         return $count == 0;
     }
 
@@ -120,9 +127,10 @@ class NCD_Customer_Tracker {
      * @param string $last_name Nachname
      * @return int|false ID des Eintrags oder false bei Fehler
      */
-    public function add_customer($email, $first_name = '', $last_name = '') {
+    public function add_customer($email, $first_name = '', $last_name = '')
+    {
         global $wpdb;
-        
+
         try {
             $result = $wpdb->insert(
                 self::get_table_name(),
@@ -134,11 +142,11 @@ class NCD_Customer_Tracker {
                 ],
                 ['%s', '%s', '%s', '%s']
             );
-            
+
             if ($result === false) {
                 throw new Exception($wpdb->last_error);
             }
-            
+
             return $wpdb->insert_id;
         } catch (Exception $e) {
             $this->log_error('Failed to add customer', [
@@ -157,19 +165,20 @@ class NCD_Customer_Tracker {
      * @param string $coupon_code Optional. Gutscheincode
      * @return bool
      */
-    public function update_customer_status($email, $status, $coupon_code = '') {
+    public function update_customer_status($email, $status, $coupon_code = '')
+    {
         global $wpdb;
-        
+
         $data = [
             'status' => $status,
             'updated_at' => current_time('mysql')
         ];
-        
+
         if ($status === 'sent' && !empty($coupon_code)) {
             $data['discount_email_sent'] = current_time('mysql');
             $data['coupon_code'] = $coupon_code;
         }
-        
+
         return $wpdb->update(
             self::get_table_name(),
             $data,
@@ -185,54 +194,56 @@ class NCD_Customer_Tracker {
      * @param array $args Query-Argumente
      * @return array
      */
-    public function get_customers($args = []) {
+    public function get_customers($args = [])
+    {
         global $wpdb;
-        
+
         $defaults = [
             'days' => 30,
             'status' => '',
             'only_new' => false,
-            'orderby' => 'created_at',
+            'orderby' => 'post_date',
             'order' => 'DESC',
             'limit' => 50,
             'offset' => 0
         ];
-        
+
         $args = wp_parse_args($args, $defaults);
-        
-        $where = ["1=1"];
-        $values = [];
-        
-        if ($args['days'] > 0) {
-            $where[] = "created_at >= DATE_SUB(NOW(), INTERVAL %d DAY)";
-            $values[] = $args['days'];
+
+        // Hole direkt die WooCommerce Bestellungen
+        $orders = $wpdb->get_results($wpdb->prepare("
+            SELECT 
+                o.ID as order_id,
+                MAX(CASE WHEN pm.meta_key = '_billing_email' THEN pm.meta_value END) as customer_email,
+                MAX(CASE WHEN pm.meta_key = '_billing_first_name' THEN pm.meta_value END) as customer_first_name,
+                MAX(CASE WHEN pm.meta_key = '_billing_last_name' THEN pm.meta_value END) as customer_last_name,
+                o.post_date as created_at
+            FROM {$wpdb->prefix}posts o
+            JOIN {$wpdb->prefix}postmeta pm ON o.ID = pm.post_id
+            WHERE o.post_type = 'shop_order'
+            AND o.post_status IN ('wc-completed', 'wc-processing')
+            AND o.post_date >= DATE_SUB(NOW(), INTERVAL %d DAY)
+            AND pm.meta_key IN ('_billing_email', '_billing_first_name', '_billing_last_name')
+            GROUP BY o.ID
+            ORDER BY o.post_date DESC
+            LIMIT %d OFFSET %d
+        ", $args['days'], $args['limit'], $args['offset']));
+
+        // Ergänze Tracking-Informationen
+        foreach ($orders as $order) {
+            $tracking = $wpdb->get_row($wpdb->prepare("
+                SELECT discount_email_sent, coupon_code 
+                FROM " . self::get_table_name() . "
+                WHERE customer_email = %s
+            ", $order->customer_email));
+
+            if ($tracking) {
+                $order->discount_email_sent = $tracking->discount_email_sent;
+                $order->coupon_code = $tracking->coupon_code;
+            }
         }
-        
-        if (!empty($args['status'])) {
-            $where[] = "status = %s";
-            $values[] = $args['status'];
-        }
-        
-        $query = "SELECT * FROM " . self::get_table_name() . "
-                 WHERE " . implode(' AND ', $where) . "
-                 ORDER BY {$args['orderby']} {$args['order']}
-                 LIMIT %d OFFSET %d";
-        
-        $values[] = $args['limit'];
-        $values[] = $args['offset'];
-        
-        $results = $wpdb->get_results(
-            $wpdb->prepare($query, $values),
-            ARRAY_A
-        );
-        
-        if ($args['only_new']) {
-            $results = array_filter($results, function($customer) {
-                return $this->is_new_customer($customer['customer_email']);
-            });
-        }
-        
-        return $results;
+
+        return $orders;
     }
 
     /**
@@ -240,9 +251,10 @@ class NCD_Customer_Tracker {
      *
      * @return int Anzahl der gelöschten Einträge
      */
-    public function cleanup_old_entries() {
+    public function cleanup_old_entries()
+    {
         global $wpdb;
-        
+
         return $wpdb->query($wpdb->prepare("
             DELETE FROM " . self::get_table_name() . "
             WHERE created_at < DATE_SUB(NOW(), INTERVAL %d DAY)
@@ -257,7 +269,8 @@ class NCD_Customer_Tracker {
      * @param array $context Zusätzliche Kontext-Informationen
      * @return void
      */
-    private function log_error($message, $context = []) {
+    private function log_error($message, $context = [])
+    {
         if (WP_DEBUG) {
             error_log(sprintf(
                 '[NewCustomerDiscount] Customer Tracker Error: %s | Context: %s',
@@ -272,14 +285,15 @@ class NCD_Customer_Tracker {
      *
      * @return array
      */
-    public function get_statistics() {
+    public function get_statistics()
+    {
         global $wpdb;
-        
+
         // Prüfe ob Tabelle existiert
         $table_exists = $wpdb->get_var(
             "SHOW TABLES LIKE '" . self::get_table_name() . "'"
         ) === self::get_table_name();
-        
+
         if (!$table_exists) {
             return [
                 'total' => 0,
