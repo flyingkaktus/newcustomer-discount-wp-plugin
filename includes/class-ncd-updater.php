@@ -25,12 +25,16 @@ class NCD_Updater
         $this->basename = plugin_basename($file);
         $this->active = is_plugin_active($this->basename);
 
+        error_log('NCD_Updater basename: ' . $this->basename);
+        error_log('NCD_Updater active: ' . ($this->active ? 'yes' : 'no'));
+
         // GitHub-Einstellungen
         $this->github_username = 'flyingkaktus';
         $this->github_repo = 'newcustomer-discount-wp-plugin';
 
         // Plugin Daten direkt setzen
         $this->plugin = get_plugin_data($this->file);
+        error_log('NCD_Updater current version: ' . $this->plugin["Version"]);
 
         // Hooks hinzufügen
         add_filter('pre_set_site_transient_update_plugins', [$this, 'modify_transient'], 10, 1);
@@ -49,6 +53,7 @@ class NCD_Updater
     private function get_repository_info()
     {
         if (!empty($this->github_response)) {
+            error_log('NCD_Updater using cached response');
             return;
         }
 
@@ -57,6 +62,8 @@ class NCD_Updater
             $this->github_username,
             $this->github_repo
         );
+        
+        error_log('NCD_Updater requesting: ' . $request_uri);
 
         $args = [
             'headers' => [
@@ -94,11 +101,14 @@ class NCD_Updater
 
     public function modify_transient($transient)
     {
+        error_log('NCD_Updater modify_transient called');
         if (!is_object($transient)) {
+            error_log('NCD_Updater transient is not an object');
             $transient = new stdClass;
         }
 
         if (empty($transient->checked)) {
+            error_log('NCD_Updater transient->checked is empty');
             return $transient;
         }
 
