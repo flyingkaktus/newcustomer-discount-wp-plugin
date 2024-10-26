@@ -54,7 +54,7 @@ class NCD_Updater
     {
         if (!empty($this->github_response)) {
             error_log('NCD_Updater using cached response');
-            return;
+            return true;
         }
 
         $request_uri = sprintf(
@@ -122,26 +122,34 @@ class NCD_Updater
             $remote_version = str_replace('v', '', $this->github_response->tag_name);
             error_log('NCD_Updater remote version: ' . $remote_version);
             error_log('NCD_Updater current version: ' . $this->plugin['Version']);
+            error_log('Version comparison result: ' . version_compare($remote_version, $this->plugin['Version'], '>'));
     
             if (version_compare($remote_version, $this->plugin['Version'], '>')) {
                 error_log('NCD_Updater update available');
                 
                 $obj = new stdClass();
                 $obj->slug = dirname($this->basename);
-                $obj->plugin = $this->basename;  // Wichtig!
+                $obj->plugin = $this->basename;
                 $obj->new_version = $remote_version;
                 $obj->url = $this->plugin["PluginURI"];
                 $obj->package = $this->github_response->zipball_url;
                 $obj->tested = $this->plugin["RequiresWP"];
                 $obj->requires = $this->plugin["RequiresWP"];
                 $obj->requires_php = $this->plugin["RequiresPHP"];
-            
+                
+                // Log before setting response
+                error_log('Setting response for: ' . $this->basename);
                 $transient->response[$this->basename] = $obj;
                 
                 error_log('NCD_Updater added update object: ' . print_r($obj, true));
+            } else {
+                error_log('NCD_Updater no update needed');
             }
+        } else {
+            error_log('NCD_Updater failed to get repository info');
         }
     
+        error_log('Full transient object: ' . print_r($transient, true));
         return $transient;
     }
 
