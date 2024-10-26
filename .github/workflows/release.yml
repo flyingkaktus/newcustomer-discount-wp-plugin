@@ -1,25 +1,22 @@
 name: Create Release
 
-# Definiere Berechtigungen für alle Jobs
 permissions:
-  contents: write  # Für Releases und Pushes
-  packages: write  # Falls Sie auch Packages verwenden
-  issues: write    # Falls Sie Release-Notes in Issues referenzieren
+  contents: write
+  packages: write
+  issues: write
 
 on:
   push:
-    tags:
-      - 'v*'
     branches:
       - main
     paths-ignore:
       - 'v*'
 
 jobs:
-  build:
-    name: Create Release
+  version-and-release:
+    name: Version and Release
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,33 +31,52 @@ jobs:
           extensions: mbstring, xml
           tools: composer:v2
 
-      - name: PHP Lint
+      - name: Get current version
+        id: current_version
         run: |
-          find . -name "*.php" -exec php -l {} \;
+          CURRENT_VERSION=$(grep -Po "Version: \K[0-9]+\.[0-9]+\.[0-9]+" newcustomer-discount.php)
+          echo "CURRENT_VERSION=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Aktuelle Version: $CURRENT_VERSION"
 
-      - name: Get version
-        id: version
+      - name: Calculate new version
+        id: new_version
         run: |
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/v}
+          CURRENT=${{ steps.current_version.outputs.CURRENT_VERSION }}
+          # Versionsteile extrahieren
+          MAJOR=$(echo $CURRENT | cut -d. -f1)
+          MINOR=$(echo $CURRENT | cut -d. -f2)
+          PATCH=$(echo $CURRENT | cut -d. -f3)
+          
+          # Commit Message analysieren für Versionstyp
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          if [[ $COMMIT_MSG == *"MAJOR:"* ]]; then
+            NEW_VERSION="$((MAJOR + 1)).0.0"
+          elif [[ $COMMIT_MSG == *"MINOR:"* ]]; then
+            NEW_VERSION="$MAJOR.$((MINOR + 1)).0"
           else
-            VERSION="1.0.10"  # Default Version wenn kein Tag
+            NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
           fi
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          echo "DATE=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+          
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "Neue Version: $NEW_VERSION"
 
-      - name: Update version in plugin file
+      - name: Update version in files
         run: |
-          VERSION=${{ steps.version.outputs.VERSION }}
+          VERSION=${{ steps.new_version.outputs.NEW_VERSION }}
+          echo "Aktualisiere Version auf: $VERSION"
+          
+          # Update Plugin-Datei
           sed -i "s/Version: .*$/Version: $VERSION/" newcustomer-discount.php
           sed -i "s/define('NCD_VERSION',.*/define('NCD_VERSION', '$VERSION');/" newcustomer-discount.php
-
-      - name: Update readme.txt
-        run: |
-          VERSION=${{ steps.version.outputs.VERSION }}
+          
+          # Update readme.txt falls vorhanden
           if [ -f "readme.txt" ]; then
             sed -i "s/Stable tag: .*$/Stable tag: $VERSION/" readme.txt
           fi
+
+      - name: PHP Lint
+        run: |
+          find . -name "*.php" -exec php -l {} \;
 
       - name: Generate changelog
         id: changelog
@@ -86,14 +102,24 @@ jobs:
           cd ..
           rm -rf temp
 
+      - name: Commit version update
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git commit -m "chore: update version to ${{ steps.new_version.outputs.NEW_VERSION }}"
+          git tag "v${{ steps.new_version.outputs.NEW_VERSION }}"
+          git push
+          git push --tags
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: newcustomer-discount-wp-plugin.zip
-          tag_name: v${{ steps.version.outputs.VERSION }}
-          name: Release ${{ steps.version.outputs.VERSION }}
+          tag_name: v${{ steps.new_version.outputs.NEW_VERSION }}
+          name: Release ${{ steps.new_version.outputs.NEW_VERSION }}
           body: |
             Änderungen in diesem Release:
             ${{ steps.changelog.outputs.CHANGELOG }}
@@ -101,7 +127,7 @@ jobs:
             ### Automatisch generierter Release
             
             Diese Version enthält:
-            * Plugin Version: ${{ steps.version.outputs.VERSION }}
+            * Plugin Version: ${{ steps.new_version.outputs.NEW_VERSION }}
             * Generiert am: ${{ steps.version.outputs.DATE }}
             
             ### Installation
@@ -111,20 +137,6 @@ jobs:
             4. Wählen Sie die heruntergeladene ZIP-Datei aus
             5. Klicken Sie auf "Jetzt installieren"
             6. Aktivieren Sie das Plugin
-          draft: false
-          prerelease: false
-
-      - name: Push changes
-        run: |
-          if [[ -n $(git status --porcelain) ]]; then
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
-            git add -A
-            git commit -m "chore: update version to ${{ steps.version.outputs.VERSION }}"
-            git push
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cleanup
         if: always()
