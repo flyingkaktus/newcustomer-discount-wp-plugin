@@ -128,38 +128,49 @@ class NCD_Updater
                 
                 $obj = new stdClass();
                 $obj->slug = dirname($this->basename);
+                $obj->plugin = $this->basename;  // Wichtig!
                 $obj->new_version = $remote_version;
                 $obj->url = $this->plugin["PluginURI"];
                 $obj->package = $this->github_response->zipball_url;
-    
+                $obj->tested = $this->plugin["RequiresWP"];
+                $obj->requires = $this->plugin["RequiresWP"];
+                $obj->requires_php = $this->plugin["RequiresPHP"];
+            
                 $transient->response[$this->basename] = $obj;
                 
-                error_log('NCD_Updater added update information to transient');
+                error_log('NCD_Updater added update object: ' . print_r($obj, true));
             }
         }
     
         return $transient;
     }
 
-    public function plugin_popup($result, $action, $args)
-    {
+    public function plugin_popup($result, $action, $args) {
+        error_log('NCD_Updater plugin_popup called');
+        error_log('Action: ' . $action);
+        error_log('Args slug: ' . (isset($args->slug) ? $args->slug : 'none'));
+    
         if ($action !== 'plugin_information') {
             return $result;
         }
-
+    
         if (!isset($args->slug) || $args->slug !== dirname($this->basename)) {
             return $result;
         }
-
+    
         if ($this->get_repository_info()) {
+            error_log('NCD_Updater building plugin info');
+            
             $plugin = new stdClass();
             $plugin->name = $this->plugin["Name"];
             $plugin->slug = dirname($this->basename);
+            $plugin->plugin = $this->basename;  // Wichtig!
             $plugin->version = str_replace('v', '', $this->github_response->tag_name);
             $plugin->author = $this->plugin["AuthorName"];
             $plugin->homepage = $this->plugin["PluginURI"];
             $plugin->requires = $this->plugin["RequiresWP"];
             $plugin->tested = $this->plugin["RequiresWP"];
+            $plugin->requires_php = $this->plugin["RequiresPHP"];
             $plugin->downloaded = 0;
             $plugin->last_updated = $this->github_response->published_at;
             $plugin->sections = [
@@ -167,10 +178,11 @@ class NCD_Updater
                 'changelog' => $this->github_response->body
             ];
             $plugin->download_link = $this->github_response->zipball_url;
-
+    
+            error_log('NCD_Updater returning plugin info: ' . print_r($plugin, true));
             return $plugin;
         }
-
+    
         return $result;
     }
 
