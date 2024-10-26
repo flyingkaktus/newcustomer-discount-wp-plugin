@@ -227,23 +227,29 @@ class NCD_Customer_Tracker
             GROUP BY o.ID
             ORDER BY o.post_date DESC
             LIMIT %d OFFSET %d
-        ", $args['days'], $args['limit'], $args['offset']));
+        ", $args['days'], $args['limit'], $args['offset']), ARRAY_A); // ARRAY_A hinzugefügt
 
         // Ergänze Tracking-Informationen
+        $processed_orders = [];
         foreach ($orders as $order) {
             $tracking = $wpdb->get_row($wpdb->prepare("
                 SELECT discount_email_sent, coupon_code 
                 FROM " . self::get_table_name() . "
                 WHERE customer_email = %s
-            ", $order->customer_email));
+            ", $order['customer_email']), ARRAY_A); // ARRAY_A hinzugefügt
 
             if ($tracking) {
-                $order->discount_email_sent = $tracking->discount_email_sent;
-                $order->coupon_code = $tracking->coupon_code;
+                $order['discount_email_sent'] = $tracking['discount_email_sent'];
+                $order['coupon_code'] = $tracking['coupon_code'];
+            } else {
+                $order['discount_email_sent'] = null;
+                $order['coupon_code'] = null;
             }
+
+            $processed_orders[] = $order;
         }
 
-        return $orders;
+        return $processed_orders;
     }
 
     /**

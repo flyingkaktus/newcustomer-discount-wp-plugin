@@ -128,68 +128,68 @@ $stats = $this->customer_tracker->get_statistics();
             </thead>
             <tbody>
                 <?php if (empty($customers)): ?>
-                <tr>
-                    <td colspan="7" class="ncd-no-items">
-                        <?php _e('Keine Kunden gefunden.', 'newcustomer-discount'); ?>
-                    </td>
-                </tr>
+                    <tr>
+                        <td colspan="7" class="ncd-no-items">
+                            <?php _e('Keine Kunden gefunden.', 'newcustomer-discount'); ?>
+                        </td>
+                    </tr>
                 <?php else: ?>
                     <?php foreach ($customers as $customer): 
                         $is_new = $this->customer_tracker->is_new_customer($customer['customer_email']);
                         $has_coupon = !empty($customer['coupon_code']);
                     ?>
-                    <tr>
-                        <td class="ncd-col-email">
-                            <?php echo esc_html($customer['customer_email']); ?>
-                        </td>
-                        <td class="ncd-col-name">
-                            <?php echo esc_html($customer['customer_first_name'] . ' ' . $customer['customer_last_name']); ?>
-                        </td>
-                        <td class="ncd-col-date">
-                            <?php echo date_i18n(
-                                get_option('date_format') . ' ' . get_option('time_format'), 
-                                strtotime($customer['created_at'])
-                            ); ?>
-                        </td>
-                        <td class="ncd-col-status">
-                            <?php if ($is_new): ?>
-                                <span class="ncd-status ncd-status-new">
-                                    <?php _e('Neukunde', 'newcustomer-discount'); ?>
-                                </span>
-                            <?php else: ?>
-                                <span class="ncd-status ncd-status-existing">
-                                    <?php _e('Bestandskunde', 'newcustomer-discount'); ?>
-                                </span>
-                            <?php endif; ?>
-                        </td>
-                        <td class="ncd-col-code">
-                            <?php echo $has_coupon ? esc_html($customer['coupon_code']) : '-'; ?>
-                        </td>
-                        <td class="ncd-col-sent">
-                            <?php echo $customer['discount_email_sent'] 
-                                ? date_i18n(
+                        <tr>
+                            <td class="ncd-col-email">
+                                <?php echo esc_html($customer['customer_email']); ?>
+                            </td>
+                            <td class="ncd-col-name">
+                                <?php echo esc_html($customer['customer_first_name'] . ' ' . $customer['customer_last_name']); ?>
+                            </td>
+                            <td class="ncd-col-date">
+                                <?php echo date_i18n(
                                     get_option('date_format') . ' ' . get_option('time_format'), 
-                                    strtotime($customer['discount_email_sent'])
-                                  ) 
-                                : '-'; ?>
-                        </td>
-                        <td class="ncd-col-actions">
-                            <?php if ($is_new && !$has_coupon): ?>
-                                <button type="button" 
-                                        class="button button-primary ncd-send-discount"
-                                        data-email="<?php echo esc_attr($customer['customer_email']); ?>"
-                                        data-first-name="<?php echo esc_attr($customer['customer_first_name']); ?>"
-                                        data-last-name="<?php echo esc_attr($customer['customer_last_name']); ?>">
-                                    <?php _e('Rabattcode senden', 'newcustomer-discount'); ?>
-                                </button>
-                            <?php elseif ($has_coupon): ?>
-                                <span class="ncd-sent-info" 
-                                      title="<?php esc_attr_e('Rabattcode wurde bereits gesendet', 'newcustomer-discount'); ?>">
-                                    ✓
-                                </span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
+                                    strtotime($customer['created_at'])
+                                ); ?>
+                            </td>
+                            <td class="ncd-col-status">
+                                <?php if ($is_new): ?>
+                                    <span class="ncd-status ncd-status-new">
+                                        <?php _e('Neukunde', 'newcustomer-discount'); ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span class="ncd-status ncd-status-existing">
+                                        <?php _e('Bestandskunde', 'newcustomer-discount'); ?>
+                                    </span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="ncd-col-code">
+                                <?php echo $has_coupon ? esc_html($customer['coupon_code']) : '-'; ?>
+                            </td>
+                            <td class="ncd-col-sent">
+                                <?php echo !empty($customer['discount_email_sent']) 
+                                    ? date_i18n(
+                                        get_option('date_format') . ' ' . get_option('time_format'), 
+                                        strtotime($customer['discount_email_sent'])
+                                      ) 
+                                    : '-'; ?>
+                            </td>
+                            <td class="ncd-col-actions">
+                                <?php if ($is_new && !$has_coupon): ?>
+                                    <button type="button" 
+                                            class="button button-primary ncd-send-discount"
+                                            data-email="<?php echo esc_attr($customer['customer_email']); ?>"
+                                            data-first-name="<?php echo esc_attr($customer['customer_first_name']); ?>"
+                                            data-last-name="<?php echo esc_attr($customer['customer_last_name']); ?>">
+                                        <?php _e('Rabattcode senden', 'newcustomer-discount'); ?>
+                                    </button>
+                                <?php elseif ($has_coupon): ?>
+                                    <span class="ncd-sent-info" 
+                                          title="<?php esc_attr_e('Rabattcode wurde bereits gesendet', 'newcustomer-discount'); ?>">
+                                        ✓
+                                    </span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </tbody>
