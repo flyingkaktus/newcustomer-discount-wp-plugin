@@ -45,38 +45,76 @@ class NCD_Updater
                 $this->github_repo
             );
 
-            $response = json_decode(wp_remote_retrieve_body(wp_remote_get($request_uri)), true);
+            $response = wp_remote_get($request_uri, [
+                'headers' => [
+                    'Accept' => 'application/vnd.github.v3+json'
+                ]
+            ]);
 
-            if (is_array($response)) {
-                $this->github_response = $response;
+            // Prüfe auf Fehler
+            if (is_wp_error($response)) {
+                return false;
             }
+
+            $response_code = wp_remote_retrieve_response_code($response);
+            if ($response_code !== 200) {
+                return false;
+            }
+
+            $response_body = wp_remote_retrieve_body($response);
+            if (empty($response_body)) {
+                return false;
+            }
+
+            $response_data = json_decode($response_body, true);
+            if (!is_array($response_data) || !isset($response_data['tag_name'])) {
+                return false;
+            }
+
+            $this->github_response = $response_data;
         }
+
+        return true;
     }
 
     public function modify_transient($transient)
     {
         if (property_exists($transient, 'checked')) {
             if ($checked = $transient->checked) {
-                $this->get_repository_info();
+                // Hole Repository-Informationen
+                if (!$this->get_repository_info()) {
+                    return $transient;
+                }
 
+                $current_version = isset($checked[$this->basename]) ? $checked[$this->basename] : '0';
+                $remote_version = $this->github_response['tag_name'];
+
+                // Entferne 'v' Präfix falls vorhanden
+                $remote_version = str_replace('v', '', $remote_version);
+                
                 $out_of_date = version_compare(
-                    $this->github_response['tag_name'],
-                    $checked[$this->basename],
+                    $remote_version,
+                    $current_version,
                     'gt'
                 );
 
                 if ($out_of_date) {
-                    $new_files = $this->github_response['zipball_url'];
-                    $slug = current(explode('/', $this->basename));
+                    $new_files = isset($this->github_response['zipball_url']) 
+                        ? $this->github_response['zipball_url'] 
+                        : null;
 
-                    $plugin = [
-                        'url' => $this->plugin["PluginURI"],
-                        'slug' => $slug,
-                        'package' => $new_files,
-                        'new_version' => $this->github_response['tag_name']
-                    ];
+                    if (!empty($new_files)) {
+                        $slug = current(explode('/', $this->basename));
 
-                    $transient->response[$this->basename] = (object) $plugin;
+                        $plugin = [
+                            'url' => $this->plugin["PluginURI"],
+                            'slug' => $slug,
+                            'package' => $new_files,
+                            'new_version' => $remote_version
+                        ];
+
+                        $transient->response[$this->basename] = (object) $plugin;
+                    }
                 }
             }
         }
@@ -92,12 +130,14 @@ class NCD_Updater
 
         if (!empty($args->slug)) {
             if ($args->slug == current(explode('/', $this->basename))) {
-                $this->get_repository_info();
+                if (!$this->get_repository_info()) {
+                    return false;
+                }
 
                 $plugin = [
                     'name' => $this->plugin["Name"],
                     'slug' => $this->basename,
-                    'version' => $this->github_response['tag_name'],
+                    'version' => str_replace('v', '', $this->github_response['tag_name']),
                     'author' => $this->plugin["AuthorName"],
                     'author_profile' => $this->plugin["AuthorURI"],
                     'last_updated' => $this->github_response['published_at'],
