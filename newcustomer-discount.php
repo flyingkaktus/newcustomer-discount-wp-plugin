@@ -3,7 +3,7 @@
  * Plugin Name: Neukunden Rabatt System
  * Plugin URI: https://comingsoon.de
  * Description: Automatisches Rabattsystem für Neukunden mit E-Mail-Versand
- * Version: 1.0.4
+ * Version: 1.0.5
  * Author: Maciej Suchowski
  * Author URI: https://comingsoon.de
  * License: GPLv2 or later
@@ -20,11 +20,11 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin-Konstanten definieren
-define('NCD_VERSION', '1.0.4');
+define('NCD_VERSION', '1.0.5');
 define('NCD_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('NCD_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('NCD_INCLUDES_DIR', NCD_PLUGIN_DIR . 'includes/');
-define('NEWCUSTOMER_CUTOFF_DATE', '2024-02-01 00:00:00');
+define('NEWCUSTOMER_CUTOFF_DATE', '2024-03-01 00:00:00');
 
 // Erforderliche Klassen manuell laden
 require_once NCD_INCLUDES_DIR . 'class-ncd-customer-tracker.php';

@@ -99,41 +99,45 @@ class NCD_Updater
         return true;
     }
 
-    public function modify_transient($transient)
-    {
+    public function modify_transient($transient) {
         error_log('NCD_Updater modify_transient called');
+    
         if (!is_object($transient)) {
             error_log('NCD_Updater transient is not an object');
             $transient = new stdClass;
         }
-
-        if (empty($transient->checked)) {
-            error_log('NCD_Updater transient->checked is empty');
-            return $transient;
+    
+        // Stelle sicher dass checked existiert
+        if (!isset($transient->checked)) {
+            error_log('NCD_Updater initializing checked data');
+            $transient->checked = [];
         }
-
-        // Hole aktuelle Version
-        $current_version = $this->plugin['Version'];
-
+    
+        // Füge unser Plugin zur checked-Liste hinzu
+        $transient->checked[$this->basename] = $this->plugin['Version'];
+        error_log('NCD_Updater added plugin to checked: ' . $this->basename . ' => ' . $this->plugin['Version']);
+    
         // Hole GitHub Version
         if ($this->get_repository_info()) {
             $remote_version = str_replace('v', '', $this->github_response->tag_name);
-
-            // Debug
-            error_log("Current version: " . $current_version);
-            error_log("Remote version: " . $remote_version);
-
-            if (version_compare($remote_version, $current_version, '>')) {
+            error_log('NCD_Updater remote version: ' . $remote_version);
+            error_log('NCD_Updater current version: ' . $this->plugin['Version']);
+    
+            if (version_compare($remote_version, $this->plugin['Version'], '>')) {
+                error_log('NCD_Updater update available');
+                
                 $obj = new stdClass();
                 $obj->slug = dirname($this->basename);
                 $obj->new_version = $remote_version;
                 $obj->url = $this->plugin["PluginURI"];
                 $obj->package = $this->github_response->zipball_url;
-
+    
                 $transient->response[$this->basename] = $obj;
+                
+                error_log('NCD_Updater added update information to transient');
             }
         }
-
+    
         return $transient;
     }
 
