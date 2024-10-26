@@ -18,6 +18,9 @@ class NCD_Updater
 
     public function __construct($file)
     {
+        // Include plugin.php to get access to is_plugin_active()
+        require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
         $this->file = $file;
         $this->basename = plugin_basename($file);
         $this->active = is_plugin_active($this->basename);
@@ -25,20 +28,21 @@ class NCD_Updater
         // GitHub-Einstellungen
         $this->github_username = 'flyingkaktus';
         $this->github_repo = 'newcustomer-discount-wp-plugin';
-        
+
         // Plugin Daten direkt setzen
         $this->plugin = get_plugin_data($this->file);
 
-        // Hooks früher hinzufügen
+        // Hooks hinzufügen
         add_filter('pre_set_site_transient_update_plugins', [$this, 'modify_transient'], 10, 1);
         add_filter('plugins_api', [$this, 'plugin_popup'], 10, 3);
         add_filter('upgrader_post_install', [$this, 'after_install'], 10, 3);
-        
+
         // Cache regelmäßig leeren
         add_action('admin_init', [$this, 'clear_plugin_cache']);
     }
 
-    public function clear_plugin_cache() {
+    public function clear_plugin_cache()
+    {
         delete_site_transient('update_plugins');
     }
 
@@ -48,7 +52,8 @@ class NCD_Updater
             return;
         }
 
-        $request_uri = sprintf('https://api.github.com/repos/%s/%s/releases/latest',
+        $request_uri = sprintf(
+            'https://api.github.com/repos/%s/%s/releases/latest',
             $this->github_username,
             $this->github_repo
         );
@@ -83,7 +88,7 @@ class NCD_Updater
 
         // Speichere Response
         $this->github_response = $data;
-        
+
         return true;
     }
 
@@ -99,22 +104,22 @@ class NCD_Updater
 
         // Hole aktuelle Version
         $current_version = $this->plugin['Version'];
-        
+
         // Hole GitHub Version
         if ($this->get_repository_info()) {
             $remote_version = str_replace('v', '', $this->github_response->tag_name);
-            
+
             // Debug
             error_log("Current version: " . $current_version);
             error_log("Remote version: " . $remote_version);
-            
+
             if (version_compare($remote_version, $current_version, '>')) {
                 $obj = new stdClass();
                 $obj->slug = dirname($this->basename);
                 $obj->new_version = $remote_version;
                 $obj->url = $this->plugin["PluginURI"];
                 $obj->package = $this->github_response->zipball_url;
-                
+
                 $transient->response[$this->basename] = $obj;
             }
         }
