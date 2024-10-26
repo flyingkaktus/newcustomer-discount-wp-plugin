@@ -26,29 +26,18 @@ define('NCD_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('NCD_INCLUDES_DIR', NCD_PLUGIN_DIR . 'includes/');
 define('NEWCUSTOMER_CUTOFF_DATE', '2024-01-01 00:00:00');
 
+// Erforderliche Klassen manuell laden
+require_once NCD_INCLUDES_DIR . 'class-ncd-customer-tracker.php';
+require_once NCD_INCLUDES_DIR . 'class-ncd-email-sender.php';
+require_once NCD_INCLUDES_DIR . 'class-ncd-logo-manager.php';
+require_once NCD_INCLUDES_DIR . 'class-ncd-admin.php';
+require_once NCD_INCLUDES_DIR . 'class-ncd-coupon-generator.php';
+require_once NCD_INCLUDES_DIR . 'class-ncd-updater.php';
+
 // GitHub Updater initialisieren
 if (is_admin()) {
-    require_once NCD_INCLUDES_DIR . 'class-ncd-updater.php';
     new NCD_Updater(__FILE__);
 }
-
-/**
- * Autoloader für Plugin-Klassen
- */
-spl_autoload_register(function ($class) {
-    $prefix = 'NCD_';
-    if (strpos($class, $prefix) !== 0) {
-        return;
-    }
-    
-    $class_path = str_replace($prefix, '', $class);
-    $class_path = strtolower(str_replace('_', '-', $class_path));
-    $file = NCD_INCLUDES_DIR . 'class-' . $class_path . '.php';
-    
-    if (file_exists($file)) {
-        require_once $file;
-    }
-});
 
 /**
  * Plugin Initialisierung
@@ -176,3 +165,6 @@ function ncd_log($message, $context = []) {
         ));
     }
 }
+
+// WooCommerce Integration
+require_once NCD_PLUGIN_DIR . 'includes/woocommerce-integration.php';

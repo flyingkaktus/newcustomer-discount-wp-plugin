@@ -21,12 +21,22 @@ class NCD_Customer_Tracker {
     private static $table_name;
 
     /**
+     * Gibt den Tabellennamen zurück
+     *
+     * @return string
+     */
+    private static function get_table_name() {
+        if (self::$table_name === null) {
+            global $wpdb;
+            self::$table_name = $wpdb->prefix . 'customer_discount_tracking';
+        }
+        return self::$table_name;
+    }
+
+    /**
      * Constructor
      */
     public function __construct() {
-        global $wpdb;
-        self::$table_name = $wpdb->prefix . 'customer_discount_tracking';
-        
         add_action('wp_scheduled_delete', [$this, 'cleanup_old_entries']);
     }
 
@@ -59,7 +69,7 @@ class NCD_Customer_Tracker {
         
         $charset_collate = $wpdb->get_charset_collate();
         
-        $sql = "CREATE TABLE IF NOT EXISTS " . self::$table_name . " (
+        $sql = "CREATE TABLE IF NOT EXISTS " . self::get_table_name() . " (
             id bigint(20) NOT NULL AUTO_INCREMENT,
             customer_email varchar(255) NOT NULL,
             customer_first_name varchar(255),
@@ -115,7 +125,7 @@ class NCD_Customer_Tracker {
         
         try {
             $result = $wpdb->insert(
-                self::$table_name,
+                self::get_table_name(),
                 [
                     'customer_email' => $email,
                     'customer_first_name' => $first_name,
@@ -161,7 +171,7 @@ class NCD_Customer_Tracker {
         }
         
         return $wpdb->update(
-            self::$table_name,
+            self::get_table_name(),
             $data,
             ['customer_email' => $email],
             ['%s', '%s'],
@@ -203,7 +213,7 @@ class NCD_Customer_Tracker {
             $values[] = $args['status'];
         }
         
-        $query = "SELECT * FROM " . self::$table_name . "
+        $query = "SELECT * FROM " . self::get_table_name() . "
                  WHERE " . implode(' AND ', $where) . "
                  ORDER BY {$args['orderby']} {$args['order']}
                  LIMIT %d OFFSET %d";
@@ -234,7 +244,7 @@ class NCD_Customer_Tracker {
         global $wpdb;
         
         return $wpdb->query($wpdb->prepare("
-            DELETE FROM " . self::$table_name . "
+            DELETE FROM " . self::get_table_name() . "
             WHERE created_at < DATE_SUB(NOW(), INTERVAL %d DAY)
             AND (status = 'used' OR status = 'expired')
         ", 365)); // Einträge älter als 1 Jahr
@@ -265,12 +275,27 @@ class NCD_Customer_Tracker {
     public function get_statistics() {
         global $wpdb;
         
+        // Prüfe ob Tabelle existiert
+        $table_exists = $wpdb->get_var(
+            "SHOW TABLES LIKE '" . self::get_table_name() . "'"
+        ) === self::get_table_name();
+        
+        if (!$table_exists) {
+            return [
+                'total' => 0,
+                'pending' => 0,
+                'sent' => 0,
+                'used' => 0,
+                'expired' => 0
+            ];
+        }
+
         return [
-            'total' => $wpdb->get_var("SELECT COUNT(*) FROM " . self::$table_name),
-            'pending' => $wpdb->get_var("SELECT COUNT(*) FROM " . self::$table_name . " WHERE status = 'pending'"),
-            'sent' => $wpdb->get_var("SELECT COUNT(*) FROM " . self::$table_name . " WHERE status = 'sent'"),
-            'used' => $wpdb->get_var("SELECT COUNT(*) FROM " . self::$table_name . " WHERE status = 'used'"),
-            'expired' => $wpdb->get_var("SELECT COUNT(*) FROM " . self::$table_name . " WHERE status = 'expired'")
+            'total' => $wpdb->get_var("SELECT COUNT(*) FROM " . self::get_table_name()),
+            'pending' => $wpdb->get_var("SELECT COUNT(*) FROM " . self::get_table_name() . " WHERE status = 'pending'"),
+            'sent' => $wpdb->get_var("SELECT COUNT(*) FROM " . self::get_table_name() . " WHERE status = 'sent'"),
+            'used' => $wpdb->get_var("SELECT COUNT(*) FROM " . self::get_table_name() . " WHERE status = 'used'"),
+            'expired' => $wpdb->get_var("SELECT COUNT(*) FROM " . self::get_table_name() . " WHERE status = 'expired'")
         ];
     }
 }
